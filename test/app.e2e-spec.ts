@@ -4,7 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
 
-describe('AppController (e2e)', () => {
+describe('Portfolio API (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -13,14 +13,36 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api/v1');
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/api/v1/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/v1/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect(({ body }) => {
+        expect(body.status).toBe('ok');
+        expect(body.service).toBe('portfolio-api');
+        expect(body.timestamp).toEqual(expect.any(String));
+      });
+  });
+
+  it('/api/v1/projects (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/api/v1/projects')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toEqual([
+          {
+            slug: 'portfolio-api',
+            title: 'Portfolio API',
+            summary: 'A NestJS API for serving portfolio content.',
+            techStack: ['NestJS', 'TypeScript'],
+            featured: true,
+          },
+        ]);
+      });
   });
 
   afterEach(async () => {
